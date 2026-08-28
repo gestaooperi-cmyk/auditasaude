@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUDITA SAÚDE360</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+    --bg1:#060a1f; --bg2:#0a1230; --bg3:#0d1b45;
+    --panel:rgba(255,255,255,.04);
+    --panel-b:rgba(255,255,255,.09);
+    --accent:#FF7A1A; --accent2:#ffa552;
+    --green:#2ecc71; --red:#ff5c5c; --blue:#4fc3f7; --purple:#b388ff; --yellow:#ffd54f;
+    --txt:#ffffff; --txt-mut:rgba(255,255,255,.62); --txt-mut2:rgba(255,255,255,.4);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));color:var(--txt);min-height:100vh}
+
+.sidebar{position:fixed;left:0;top:0;width:250px;height:100%;background:linear-gradient(180deg,#050815,#0a0f26);border-right:1px solid var(--panel-b);z-index:1000;overflow-y:auto}
+.sidebar-hd{padding:26px 20px;border-bottom:1px solid var(--panel-b);text-align:center}
+.sidebar-hd h2{font-size:20px;font-weight:800;color:var(--accent);letter-spacing:.5px}
+.sidebar-hd small{font-size:10px;color:var(--txt-mut2);letter-spacing:2px;text-transform:uppercase}
+.menu-item{display:flex;align-items:center;padding:14px 25px;cursor:pointer;transition:.3s;border-left:3px solid transparent;font-size:14px;color:var(--txt-mut)}
+.menu-item:hover,.menu-item.active{background:rgba(255,122,26,.12);border-left-color:var(--accent);color:var(--accent2)}
+.menu-item i{width:22px;margin-right:12px;font-size:15px}
+.sidebar-ft{padding:15px;border-top:1px solid var(--panel-b);text-align:center;position:sticky;bottom:0}
+.sidebar-ft div:last-child{margin-top:8px;font-size:10px;color:var(--txt-mut2)}
+
+.main{margin-left:250px;padding:30px;min-height:100vh}
+.page{display:none}.page.active{display:block;animation:fadeIn .35s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.page-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:25px;flex-wrap:wrap;gap:10px}
+.page-title{font-size:24px;font-weight:700;color:var(--txt)}
+.page-title i{color:var(--accent);margin-right:8px}
+
+.btn{padding:11px 22px;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:.25s;display:inline-flex;align-items:center;gap:8px}
+.btn-p{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 18px rgba(255,122,26,.25)}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(255,122,26,.4)}
+.btn-s{background:rgba(255,255,255,.06);color:var(--txt);border:1px solid var(--panel-b)}
+.btn-s:hover{border-color:var(--accent);color:var(--accent2)}
+.btn-g{background:linear-gradient(135deg,#1fa463,#2ecc71);color:#fff}
+.btn-d{background:linear-gradient(135deg,#d63838,#ff5c5c);color:#fff}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-bottom:25px}
+.card{background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--panel-b);border-radius:16px;padding:22px;position:relative;overflow:hidden;transition:.3s}
+.card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.18);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%}
+.card.or::before{background:var(--accent)}.card.gr::before{background:var(--green)}.card.rd::before{background:var(--red)}.card.bl::before{background:var(--blue)}.card.pu::before{background:var(--purple)}.card.yl::before{background:var(--yellow)}
+.card-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px}
+.card.or .card-icon{background:rgba(255,122,26,.15);color:var(--accent2)}
+.card.gr .card-icon{background:rgba(46,204,113,.15);color:var(--green)}
+.card.rd .card-icon{background:rgba(255,92,92,.15);color:var(--red)}
+.card.bl .card-icon{background:rgba(79,195,247,.15);color:var(--blue)}
+.card.pu .card-icon{background:rgba(179,136,255,.15);color:var(--purple)}
+.card.yl .card-icon{background:rgba(255,213,79,.15);color:var(--yellow)}
+.card-val{font-size:26px;font-weight:800;color:var(--txt)}
+.card-lab{font-size:12px;color:var(--txt-mut);margin-top:2px}
+
+.panel{background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--panel-b);border-radius:16px;padding:25px;margin-bottom:20px}
+.panel-t{font-size:17px;font-weight:700;color:var(--txt);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.panel-t i{color:var(--accent)}
+
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.fg{display:flex;flex-direction:column}
+.fg label{font-size:13px;font-weight:600;color:var(--txt-mut);margin-bottom:6px}
+.fg label i{color:var(--accent);margin-right:4px}
+.fg input,.fg select,.fg textarea{padding:11px 13px;border:1.5px solid rgba(255,255,255,.12);border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;transition:.3s;background:rgba(255,255,255,.05);color:var(--txt)}
+.fg input::placeholder,.fg textarea::placeholder{color:rgba(255,255,255,.35)}
+.fg select option{background:#0a1230;color:#fff}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--accent);background:rgba(255,255,255,.08);box-shadow:0 0 0 4px rgba(255,122,26,.12)}
+.fg textarea{resize:vertical;min-height:70px}
+.fg.fw{grid-column:1/-1}
+.check-line{display:flex;align-items:center;gap:10px;background:rgba(255,122,26,.08);border:1px solid rgba(255,122,26,.25);border-radius:12px;padding:14px 16px}
+.check-line input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+.check-line label{font-size:13px;color:var(--txt);cursor:pointer;font-weight:600}
+.check-line small{display:block;color:var(--txt-mut);font-weight:400;margin-top:2px}
+
+.tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--panel-b)}
+table{width:100%;border-collapse:collapse}
+thead th{background:rgba(255,255,255,.04);padding:12px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--txt-mut);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--panel-b)}
+tbody td{padding:12px 14px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.05);color:var(--txt)}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-g{background:rgba(46,204,113,.15);color:var(--green)}
+.badge-y{background:rgba(255,213,79,.15);color:var(--yellow)}
+.badge-r{background:rgba(255,92,92,.15);color:var(--red)}
+
+.benef-card{background:rgba(255,255,255,.03);border-radius:12px;padding:15px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--panel-b);transition:.3s;flex-wrap:wrap;gap:10px}
+.benef-card:hover{border-color:var(--accent)}
+.benef-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;margin-right:12px}
+.benef-info h4{font-size:14px;font-weight:600;color:var(--txt)}
+.benef-info p{font-size:11px;color:var(--txt-mut)}
+.benef-vals{display:flex;gap:20px}
+.benef-vals .vg{text-align:center}
+.benef-vals .vg small{font-size:10px;color:var(--txt-mut);display:block}
+.benef-vals .vg strong{font-size:14px;color:var(--txt)}
+
+.btn-ic{width:34px;height:34px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.3s;font-size:13px}
+.btn-ic.ed{background:rgba(79,195,247,.15);color:var(--blue)}
+.btn-ic.dl{background:rgba(255,92,92,.15);color:var(--red)}
+.btn-ic:hover{transform:scale(1.1)}
+
+.upload-area{border:2px dashed rgba(255,255,255,.15);border-radius:16px;padding:35px;text-align:center;cursor:pointer;transition:.3s;background:rgba(255,255,255,.02)}
+.upload-area:hover{border-color:var(--accent);background:rgba(255,122,26,.04)}
+.upload-area i{font-size:42px;color:rgba(255,255,255,.2);margin-bottom:12px}
+.upload-area:hover i{color:var(--accent)}
+.upload-area h3{font-size:15px;color:var(--txt);margin-bottom:4px}
+.upload-area p{font-size:12px;color:var(--txt-mut)}
+
+.resultado{display:none}.resultado.show{display:block;animation:fadeIn .4s ease}
+.status-b{padding:18px 22px;border-radius:14px;display:flex;align-items:center;gap:14px;margin-bottom:20px;font-weight:600;border:1px solid transparent}
+.status-b.verde{background:rgba(46,204,113,.1);color:var(--green);border-color:rgba(46,204,113,.25)}
+.status-b.amarelo{background:rgba(255,213,79,.1);color:var(--yellow);border-color:rgba(255,213,79,.25)}
+.status-b.vermelho{background:rgba(255,92,92,.1);color:var(--red);border-color:rgba(255,92,92,.25)}
+.status-b i{font-size:26px}
+.status-b p{color:var(--txt-mut)}
+
+.met-box{background:linear-gradient(135deg,#080c20,#0d1435);border:1px solid var(--panel-b);border-radius:14px;padding:18px;color:#fff;margin-top:18px}
+.met-box h4{color:var(--accent2);margin-bottom:10px;font-size:13px}
+.met-item{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:12px}
+.met-item:last-child{border:none}
+.met-item span:first-child{color:var(--txt-mut)}
+.met-item span:last-child{color:var(--accent2);font-weight:600;text-align:right}
+.conf-bar{height:7px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;margin-top:8px}
+.conf-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 1s}
+
+.chart-box{position:relative;height:280px}
+.charts-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+
+.modal-ov{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:9000;backdrop-filter:blur(3px)}
+.modal-ov.show{display:flex}
+.modal{background:linear-gradient(160deg,#0a1128,#0d1b45);border:1px solid var(--panel-b);border-radius:18px;padding:30px;width:500px;max-width:95%;max-height:85vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,.5)}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-hd h3{font-size:18px;font-weight:700;color:#fff}
+.modal-close{width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,.08);color:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.3s}
+.modal-close:hover{background:#ff5c5c}
+
+.empty{text-align:center;padding:50px 20px;color:rgba(255,255,255,.25)}
+.empty i{font-size:50px;margin-bottom:12px}
+.empty h3{font-size:16px;color:var(--txt-mut);margin-bottom:6px}
+.empty p{font-size:13px}
+
+.hist-item{display:flex;align-items:center;justify-content:space-between;padding:16px;background:rgba(255,255,255,.03);border-radius:12px;margin-bottom:8px;border:1px solid var(--panel-b);cursor:pointer;transition:.3s;flex-wrap:wrap;gap:10px}
+.hist-item:hover{border-color:var(--accent);box-shadow:0 3px 15px rgba(255,122,26,.15)}
+
+.ans-card{background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border-radius:14px;padding:18px;border:1px solid var(--panel-b);margin-bottom:10px}
+.ans-card h4{font-size:13px;color:var(--accent2);margin-bottom:6px}
+.ans-card .av{font-size:22px;font-weight:800;color:var(--txt)}
+.ans-card .ad{font-size:11px;color:var(--txt-mut);margin-top:3px}
+
+.info-box{background:rgba(79,195,247,.08);border:1px solid rgba(79,195,247,.25);border-radius:12px;padding:14px 16px;font-size:12.5px;color:var(--txt-mut);line-height:1.6;margin-bottom:15px}
+.info-box i{color:var(--blue);margin-right:6px}
+.info-box strong{color:#fff}
+
+@media(max-width:768px){
+    .sidebar{width:60px}
+    .sidebar .menu-item span,.sidebar-hd small,.sidebar-ft{display:none}
+    .sidebar-hd{padding:15px}
+    .sidebar-hd h2{font-size:14px}
+    .main{margin-left:60px;padding:15px}
+    .cards{grid-template-columns:1fr 1fr}
+    .charts-2{grid-template-columns:1fr}
+    .form-grid{grid-template-columns:1fr}
+    .benef-vals{display:none}
+}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR ===== -->
+<div class="sidebar">
+    <div class="sidebar-hd">
+        <h2><i class="fa-solid fa-shield-heart"></i> AUDITA</h2>
+        <small>Saúde 360</small>
+    </div>
+
+    <div class="menu-item active" onclick="irPara('dashboard')">
+        <i class="fa-solid fa-chart-line"></i><span>Dashboard</span>
+    </div>
+    <div class="menu-item" onclick="irPara('nova-auditoria')">
+        <i class="fa-solid fa-magnifying-glass-chart"></i><span>Nova Auditoria</span>
+    </div>
+    <div class="menu-item" onclick="irPara('beneficiarios')">
+        <i class="fa-solid fa-users"></i><span>Beneficiários</span>
+    </div>
+    <div class="menu-item" onclick="irPara('historico')">
+        <i class="fa-solid fa-clock-rotate-left"></i><span>Histórico</span>
+    </div>
+    <div class="menu-item" onclick="irPara('ans')">
+        <i class="fa-solid fa-scale-balanced"></i><span>Índices ANS</span>
+    </div>
+    <div class="menu-item" onclick="irPara('relatorios')">
+        <i class="fa-solid fa-file-invoice"></i><span>Relatórios</span>
+    </div>
+    <div class="menu-item" onclick="irPara('config')">
+        <i class="fa-solid fa-gear"></i><span>Configurações</span>
+    </div>
+
+    <div class="sidebar-ft">
+        <div style="font-size:12px;color:var(--txt-mut)"><i class="fa-solid fa-circle-check" style="color:var(--green)"></i> Sistema Online</div>
+        <div>v2.0 · 2026</div>
+    </div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+
+    <!-- ========================================= -->
+    <!-- PÁGINA: DASHBOARD -->
+    <!-- ========================================= -->
+    <div class="page active" id="page-dashboard">
+        <div class="page-hd">
+            <div>
+                <div class="page-title"><i class="fa-solid fa-chart-line"></i>Dashboard</div>
+                <p>Visão geral das auditorias de reajuste de plano de saúde</p>
+            </div>
+            <button class="btn btn-p" onclick="irPara('nova-auditoria')"><i class="fa-solid fa-plus"></i> Nova Auditoria</button>
+        </div>
+
+        <div class="cards">
+            <div class="card or">
+                <div class="card-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                <div class="card-val" id="dashTotalAud">0</div>
+                <div class="card-lab">Auditorias Realizadas</div>
+            </div>
+            <div class="card rd">
+                <div class="card-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="card-val" id="dashAbusivos">0</div>
+                <div class="card-lab">Reajustes Abusivos</div>
+            </div>
+            <div class="card gr">
+                <div class="card-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+                <div class="card-val" id="dashEconomia">R$ 0</div>
+                <div class="card-lab">Economia Potencial</div>
+            </div>
+            <div class="card pu">
+                <div class="card-icon"><i class="fa-solid fa-user-secret"></i></div>
+                <div class="card-val" id="dashFalsoColetivo">0</div>
+                <div class="card-lab">Falsos Coletivos Detectados</div>
+            </div>
+            <div class="card bl">
+                <div class="card-icon"><i class="fa-solid fa-users"></i></div>
+                <div class="card-val" id="dashBenef">0</div>
+                <div class="card-lab">Beneficiários Cadastrados</div>
+            </div>
+            <div class="card yl">
+                <div class="card-icon"><i class="fa-solid fa-percent"></i></div>
+                <div class="card-val" id="dashMediaReajuste">0%</div>
+                <div class="card-lab">Reajuste Médio Cobrado</div>
+            </div>
+        </div>
+
+        <div class="charts-2">
+            <div class="panel">
+                <div class="panel-t"><i class="fa-solid fa-chart-column"></i> Reajuste Cobrado vs. Índice ANS</div>
+                <div class="chart-box"><canvas id="chartComparativo"></canvas></div>
+            </div>
+            <div class="panel">
+                <div class="panel-t"><i class="fa-solid fa-chart-pie"></i> Classificação das Auditorias</div>
+                <div class="chart-box"><canvas id="chartClassificacao"></canvas></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-t"><i class="fa-solid fa-list"></i> Últimas Auditorias</div>
+            <div id="dashUltimasAuditorias"></div>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- PÁGINA: NOVA AUDITORIA -->
+    <!-- ========================================= -->
+    <div class="page" id="page-nova-auditoria">
+        <div class="page-hd">
+            <div>
+                <div class="page-title"><i class="fa-solid fa-magnifying-glass-chart"></i>Nova Auditoria</div>
+                <p>Analise o reajuste do plano de saúde e identifique abusividades</p>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <i class="fa-solid fa-circle-info"></i>
+            <strong>O que é o "Falso Coletivo"?</strong> Contratos coletivos por adesão com poucos beneficiários (geralmente familiares) muitas vezes são usados para aplicar reajustes livres, sem o teto da ANS. A jurisprudência do STJ entende que, quando não há vínculo real entre os beneficiários e a pessoa jurídica contratante, o reajuste deve seguir o índice da ANS para planos individuais/familiares.
+        </div>
+
+        <div class="panel">
+            <div class="panel-t"><i class="fa-solid fa-file-pen"></i> Dados do Contrato</div>
+
+            <div class="form-grid" style="margin-bottom:18px">
+                <div class="fg">
+                    <label><i class="fa-solid fa-user"></i>Nome do Beneficiário</label>
+                    <input type="text" id="inpNome" placeholder="Ex: Maria da Silva">
+                </div>
+                <div class="fg">
+                    <label><i class="fa-solid fa-id-card"></i>CPF</label>
+                    <input type="text" id="inpCPF" placeholder="000.000.000-00">
+                </div>
+                <div class="fg">
+                    <label><i class="fa-solid fa-building-shield"></i>Operadora do Plano</label>
+                    <input type="text" id="inpOperadora" placeholder="Ex: Amil, Bradesco Saúde, SulAmérica...">
+                </div>
+                <div class="fg">
+                    <label><i class="fa-solid fa-file-contract"></i>Tipo de Contrato</label>
+                    <select id="inpTipoContrato" onchange="toggleColetivo()">
+                        <option value="individual">Individual / Familiar</option>
+                        <option value="coletivo-empresarial">Coletivo Empresarial</option>
+                        <option value="coletivo-adesao">Coletivo por Adesão</option>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label><i class="fa-solid fa-calendar-day"></i>Data do Reajuste</label>
+                    <input type="date" id="inpDataReajuste">
+                </div>
+                <div class="fg">
+                    <label><i class="fa-solid fa-calendar-check"></i>Mês de Aniversário do Contrato</label>
+                    <select id="inpMesAniversario">
+                        <option value="1">Janeiro</option><option value="2">Fevereiro</option>
+                        <option value="3">Março</option><option value="4">Abril</option>
+                        <option value="5">Maio</option><option value="6">Junho</option>
+                        <option value="7">Julho</option><option value="8">Agosto</option>
+                        <option value="9">Setembro</option><option value="10">Outubro</option>
+                        <option value="11">Novembro</option><option value="12">Dezembro</option>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label><i class="fa-solid fa-sack-dollar"></i>Valor da Mensalidade Anterior (R$)</label>
+                    <input type="number" step="0.01" id="inpValorAnterior" placeholder="Ex: 850.00">
+                </div>
+                <div class="fg">
+                    <label><i class="fa-solid fa-money-bill-trend-up"></i>Valor da Nova Mensalidade (R$)</label>
+                    <input type="number" step="0.01" id="inpValorNovo" placeholder="Ex: 1050.00">
+                </div>
+                <div class="fg">
+                    <label><i class="fa-solid fa-birthday-cake"></i>Idade do Beneficiário Titular</label>
+                    <input type="number" id="inpIdade" placeholder="Ex: 45">
+                </div>
+            </div>
+
+            <!-- Bloco condicional exibido apenas para contratos coletivos -->
+            <div id="blocoColetivo" style="display:none;margin-bottom:18px">
+                <div class="form-grid" style="margin-bottom:14px">
+                    <div class="fg">
+                        <label><i class="fa-solid fa-users-line"></i>Nº Total de Beneficiários no Contrato/Apólice</label>
+                        <input type="number" id="inpQtdBeneficiarios" placeholder="Ex: 4">
+                    </div>
+                    <div class="fg">
+                        <label><i class="fa-solid fa-people-roof"></i>Nº de Beneficiários da Mesma Família</label>
+                        <input type="number" id="inpQtdFamiliares" placeholder="Ex: 4">
+                    </div>
+                    <div class="fg">
+                        <label><i class="fa-solid fa-building"></i>Há Vínculo Empregatício Real com a Empresa/Associação?</label>
+                        <select id="inpVinculoReal">
+                            <option value="nao">Não há vínculo real</option>
+                            <option value="sim">Sim, há vínculo comprovado</option>
+                            <option value="nao-sei">Não sei informar</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="check-line">
+                    <input type="checkbox" id="chkFalsoColetivo" onchange="toggleFalsoColetivoManual()">
+                    <label for="chkFalsoColetivo">
+                        Suspeito que este é um "Falso Coletivo"
+                        <small>Marque se o contrato coletivo foi usado apenas para fugir do teto de reajuste da ANS, sem vínculo real entre os beneficiários e a pessoa jurídica.</small>
+                    </label>
+                </div>
+            </div>
+
+            <div class="fg fw">
+                <label><i class="fa-solid fa-note-sticky"></i>Observações (opcional)</label>
+                <textarea id="inpObservacoes" placeholder="Alguma informação adicional relevante sobre o caso..."></textarea>
+            </div>
+
+            <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap">
+                <button class="btn btn-p" onclick="executarAuditoria()"><i class="fa-solid fa-magnifying-glass"></i> Analisar Reajuste</button>
+                <button class="btn btn-s" onclick="limparFormAuditoria()"><i class="fa-solid fa-eraser"></i> Limpar</button>
+            </div>
+        </div>
+
+        <!-- Upload de documento (opcional / decorativo) -->
+        <div class="panel">
+            <div class="panel-t"><i class="fa-solid fa-paperclip"></i> Anexar Boleto / Carta de Reajuste (opcional)</div>
+            <div class="upload-area" onclick="document.getElementById('fileUpload').click()">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <h3>Clique ou arraste o arquivo aqui</h3>
+                <p>PDF, JPG ou PNG até 10MB</p>
+                <input type="file" id="fileUpload" style="display:none" accept=".pdf,.jpg,.jpeg,.png">
+            </div>
+            <div id="fileNome" style="margin-top:10px;font-size:12px;color:var(--txt-mut)"></div>
+        </div>
+
+        <!-- ===== RESULTADO DA AUDITORIA ===== -->
+        <div class="resultado" id="resultadoAuditoria">
+
+            <div id="statusBanner"></div>
+
+            <div class="cards">
+                <div class="card or">
+                    <div class="card-icon"><i class="fa-solid fa-percent"></i></div>
+                    <div class="card-val" id="resReajusteCobrado">0%</div>
+                    <div class="card-lab">Reajuste Cobrado</div>
+                </div>
+                <div class="card bl">
+                    <div class="card-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+                    <div class="card-val" id="resIndiceANS">0%</div>
+                    <div class="card-lab">Índice ANS de Referência</div>
+                </div>
+                <div class="card rd">
+                    <div class="card-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                    <div class="card-val" id="resDiferenca">0%</div>
+                    <div class="card-lab">Diferença (Excesso)</div>
+                </div>
+                <div class="card gr">
+                    <div class="card-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+                    <div class="card-val" id="resEconomiaAnual">R$ 0</div>
+                    <div class="card-lab">Economia Potencial/Ano</div>
+                </div>
+            </div>
+
+            <div class="charts-2">
+                <div class="panel">
+                    <div class="panel-t"><i class="fa-solid fa-chart-simple"></i> Comparativo de Valores</div>
+                    <div class="chart-box"><canvas id="chartResultado"></canvas></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-t"><i class="fa-solid fa-microscope"></i> Detalhamento da Análise</div>
+                    <div class="met-box" style="margin-top:0">
+                        <h4><i class="fa-solid fa-list-check"></i> Metodologia Aplicada</h4>
+                        <div id="metodologiaDetalhes"></div>
+                        <div style="margin-top:14px">
+                            <span style="font-size:12px;color:var(--txt-mut)">Nível de Confiança da Análise</span>
+                            <div class="conf-bar"><div class="conf-fill" id="confFill" style="width:0%"></div></div>
+                            <div style="text-align:right;font-size:12px;color:var(--accent2);margin-top:4px" id="confPct">0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-t"><i class="fa-solid fa-file-lines"></i> Parecer Técnico</div>
+                <div id="parecerTecnico" style="font-size:14px;line-height:1.8;color:var(--txt-mut)"></div>
+                <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap">
+                    <button class="btn btn-g" onclick="salvarAuditoria()"><i class="fa-solid fa-floppy-disk"></i> Salvar Auditoria</button>
+                    <button class="btn btn-s" onclick="gerarPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- PÁGINA: BENEFICIÁRIOS -->
+    <!-- ========================================= -->
+    <div class="page" id="page-beneficiarios">
+        <div class="page-hd">
+            <div>
+                <div class="page-title"><i class="fa-solid fa-users"></i>Beneficiários</div>
+                <p>Gerencie os beneficiários cadastrados no sistema</p>
+            </div>
+            <button class="btn btn-p" onclick="abrirModalBeneficiario()"><i class="fa-solid fa-user-plus"></i> Novo Beneficiário</button>
+        </div>
+
+        <div class="panel">
+            <div id="listaBeneficiarios"></div>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- PÁGINA: HISTÓRICO -->
+    <!-- ========================================= -->
+    <div class="page" id="page-historico">
+        <div class="page-hd">
+            <div>
+                <div class="page-title"><i class="fa-solid fa-clock-rotate-left"></i>Histórico de Auditorias</div>
+                <p>Todas as auditorias realizadas ficam registradas aqui</p>
+            </div>
+            <button class="btn btn-d" onclick="limparHistorico()"><i class="fa-solid fa-trash"></i> Limpar Tudo</button>
+        </div>
+
+        <div class="panel">
+            <div id="listaHistorico"></div>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- PÁGINA: ÍNDICES ANS -->
+    <!-- ========================================= -->
+    <div class="page" id="page-ans">
+        <div class="page-hd">
+            <div>
+                <div class="page-title"><i class="fa-solid fa-scale-balanced"></i>Índices Oficiais ANS</div>
+                <p>Tabela de reajustes autorizados para planos individuais/familiares (2017–2026)</p>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-t"><i class="fa-solid fa-chart-line"></i> Evolução do Índice ANS</div>
+            <div class="chart-box"><canvas id="chartANS"></canvas></div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-t"><i class="fa-solid fa-table"></i> Tabela Histórica</div>
+            <div class="tbl-wrap">
+                <table>
+                    <thead><tr><th>Ano</th><th>Índice ANS (%)</th><th>Situação</th></tr></thead>
+                    <tbody id="tabelaANS"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- PÁGINA: RELATÓRIOS -->
+    <!-- ========================================= -->
+    <div class="page" id="page-relatorios">
+        <div class="page-hd">
+            <div>
+                <div class="page-title"><i class="fa-solid fa-file-invoice"></i>Relatórios</div>
+                <p>Resumo consolidado de todas as auditorias realizadas</p>
+            </div>
+        </div>
+
+        <div class="cards">
+            <div class="ans-card">
+                <h4><i class="fa-solid fa-magnifying-glass-chart"></i> Total de Auditorias</h4>
+                <div class="av" id="relTotal">0</div>
+                <div class="ad">Auditorias processadas no sistema</div>
+            </div>
+            <div class="ans-card">
+                <h4><i class="fa-solid fa-triangle-exclamation"></i> Reajustes Abusivos</h4>
+                <div class="av" id="relAbusivos">0</div>
+                <div class="ad">Casos com reajuste acima do índice ANS</div>
+            </div>
+            <div class="ans-card">
+                <h4><i class="fa-solid fa-sack-dollar"></i> Economia Potencial Total</h4>
+                <div class="av" id="relEconomia">R$ 0</div>
+                <div class="ad">Se todos os casos abusivos fossem revertidos</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-t"><i class="fa-solid fa-chart-column"></i> Auditorias por Operadora</div>
+            <div class="chart-box"><canvas id="chartOperadoras"></canvas></div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-t"><i class="fa-solid fa-file-export"></i> Exportar Dados</div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <button class="btn btn-p" onclick="exportarCSV()"><i class="fa-solid fa-file-csv"></i> Exportar CSV</button>
+                <button class="btn btn-s" onclick="exportarJSON()"><i class="fa-solid fa-file-code"></i> Exportar JSON (backup)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- PÁGINA: CONFIGURAÇÕES -->
+    <!-- ========================================= -->
+    <div class="page" id="page-config">
+        <div class="page-hd">
+            <div>
+                <div class="page-title"><i class="fa-solid fa-gear"></i>Configurações</div>
+                <p>Preferências gerais do sistema</p>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-t"><i class="fa-solid fa-palette"></i> Sobre o Sistema</div>
+            <p style="color:var(--txt-mut);font-size:13px;line-height:1.8">
+                <strong style="color:#fff">AUDITA SAÚDE360</strong> é uma ferramenta de auditoria de reajustes de planos de saúde,
+                que compara o percentual cobrado pela operadora com os índices oficiais da ANS, identificando cobranças abusivas
+                e casos de "falso coletivo". Todos os dados são armazenados localmente no seu navegador (localStorage) — nenhuma
+                informação é enviada a servidores externos.
+            </p>
+        </div>
+
+        <div class="panel">
+            <div class="panel-t"><i class="fa-solid fa-database"></i> Dados Locais</div>
+            <p style="color:var(--txt-mut);font-size:13px;margin-bottom:15px">Gerencie os dados armazenados neste navegador.</p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <button class="btn btn-d" onclick="resetarSistema()"><i class="fa-solid fa-triangle-exclamation"></i> Resetar Todos os Dados</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== MODAL: NOVO/EDITAR BENEFICIÁRIO ===== -->
+<div class="modal-ov" id="modalBeneficiario">
+    <div class="modal">
+        <div class="modal-hd">
+            <h3 id="modalBenefTitulo"><i class="fa-solid fa-user-plus"></i> Novo Beneficiário</h3>
+            <button class="modal-close" onclick="fecharModalBeneficiario()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <input type="hidden" id="benefEditId">
+        <div class="fg" style="margin-bottom:14px">
+            <label><i class="fa-solid fa-user"></i>Nome Completo</label>
+            <input type="text" id="modalNome" placeholder="Nome do beneficiário">
+        </div>
+        <div class="fg" style="margin-bottom:14px">
+            <label><i class="fa-solid fa-id-card"></i>CPF</label>
+            <input type="text" id="modalCPF" placeholder="000.000.000-00">
+        </div>
+        <div class="fg" style="margin-bottom:14px">
+            <label><i class="fa-solid fa-building-shield"></i>Operadora</label>
+            <input type="text" id="modalOperadora" placeholder="Operadora do plano">
+        </div>
+        <div class="fg" style="margin-bottom:20px">
+            <label><i class="fa-solid fa-sack-dollar"></i>Mensalidade Atual (R$)</label>
+            <input type="number" step="0.01" id="modalMensalidade" placeholder="Ex: 950.00">
+        </div>
+        <button class="btn btn-p" style="width:100%;justify-content:center" onclick="salvarBeneficiario()">
+            <i class="fa-solid fa-floppy-disk"></i> Salvar Beneficiário
+        </button>
+    </div>
+</div>
+
+<!-- ===== MODAL: DETALHES DA AUDITORIA (histórico) ===== -->
+<div class="modal-ov" id="modalDetalhes">
+    <div class="modal" style="width:600px">
+        <div class="modal-hd">
+            <h3><i class="fa-solid fa-file-lines"></i> Detalhes da Auditoria</h3>
+            <button class="modal-close" onclick="fecharModalDetalhes()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="conteudoModalDetalhes"></div>
+    </div>
+</div>
+pqp você só faz merda e confunde
+reenvia correto o bloco 3 novamente
+sem cortar
+
+3.1 -3.2 e 3.3
+
+
+
+
+Claude Sonnet 5
+Navegar na Web
+Você tem toda razão, e peço desculpas pela confusão anterior. Vou reenviar o Bloco 3 completo, do zero, sem cortes, dividido corretamente em 3.1, 3.2 e 3.3 — cada um terminando em um ponto limpo (fim de função), sem quebrar nada no meio.
+
+🟦 BLOCO 3.1/3 — Núcleo do Sistema (dados, navegação, motor de auditoria, CRUD, Dashboard)
+<script>
+/* ======================================================
+   AUDITA360 — CORE JS (Bloco 3.1/3)
+   ====================================================== */
+
+/* ---------- CHAVES DE ARMAZENAMENTO ---------- */
+const LS_AUD = 'audita360_auditorias';
+const LS_BEN = 'audita360_beneficiarios';
+
+/* ---------- ÍNDICES ANS (reajuste máximo autorizado por ano) ---------- */
+const INDICES_ANS = {
+    2020: 8.14,
+    2021: -8.19,
+    2022: 15.50,
+    2023: 9.63,
+    2024: 6.91,
+    2025: 6.06,
+    2026: 6.06 // provisório, ajustar quando ANS publicar oficialmente
+};
+
+/* ---------- HELPERS DE FORMATAÇÃO ---------- */
+function fmtMoeda(v){
+    return (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+function fmtPct(v){
+    const num = Number(v) || 0;
+    return num.toFixed(2).replace('.', ',') + '%';
+}
+function labelTipoContrato(tipo){
+    const map = {
+        individual: 'Individual/Familiar',
+        coletivo_empresarial: 'Coletivo Empresarial',
+        coletivo_adesao: 'Coletivo por Adesão'
+    };
+    return map[tipo] || tipo;
+}
+
+/* ---------- PERSISTÊNCIA ---------- */
+function getAuditorias(){
+    return JSON.parse(localStorage.getItem(LS_AUD) || '[]');
+}
+function salvarAuditorias(lista){
+    localStorage.setItem(LS_AUD, JSON.stringify(lista));
+}
+function getBeneficiarios(){
+    return JSON.parse(localStorage.getItem(LS_BEN) || '[]');
+}
+function salvarBeneficiarios(lista){
+    localStorage.setItem(LS_BEN, JSON.stringify(lista));
+}
+
+/* ======================================================
+   NAVEGAÇÃO ENTRE PÁGINAS
+   ====================================================== */
+function irPara(pagina){
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    const pageEl = document.getElementById('page-' + pagina);
+    const navEl = document.querySelector(`.nav-item[data-page="${pagina}"]`);
+    if(pageEl) pageEl.classList.add('active');
+    if(navEl) navEl.classList.add('active');
+
+    // Renderiza conteúdo dinâmico ao entrar na página
+    if(pagina === 'dashboard') renderDashboard();
+    if(pagina === 'historico') renderHistorico();
+    if(pagina === 'beneficiarios') renderBeneficiarios();
+    if(pagina === 'relatorios') renderRelatorios();
+    if(pagina === 'ans') renderTabelaANS();
+
+    // Fecha menu mobile se estiver aberto
+    const sidebar = document.querySelector('.sidebar');
+    if(sidebar) sidebar.classList.remove('open');
+}
+
+/* ======================================================
+   MOTOR DE AUDITORIA
+   ====================================================== */
+function executarAuditoria(dados){
+    const {
+        nome, cpf, operadora, tipoContrato, dataReajuste,
+        valorAnterior, valorNovo, isFalsoColetivo
+    } = dados;
+
+    const ano = new Date(dataReajuste + 'T00:00:00').getFullYear();
+    const indiceANS = INDICES_ANS[ano] ?? INDICES_ANS[2026];
+
+    const reajusteCobrado = ((valorNovo - valorAnterior) / valorAnterior) * 100;
+    const diferenca = reajusteCobrado - indiceANS;
+
+    // Regra de classificação
+    let status = 'verde';
+    let statusLabel = 'Regular';
+
+    if(tipoContrato === 'individual'){
+        // Individual/Familiar SEMPRE segue o índice ANS
+        if(diferenca > 5){
+            status = 'vermelho';
+            statusLabel = 'Abusivo';
+        } else if(diferenca > 1){
+            status = 'amarelo';
+            statusLabel = 'Em Alerta';
+        }
+    } else {
+        // Coletivos têm liberdade de negociação, mas se for "falso coletivo" a regra é mais rígida
+        if(isFalsoColetivo){
+            if(diferenca > 5){
+                status = 'vermelho';
+                statusLabel = 'Abusivo (Falso Coletivo)';
+            } else if(diferenca > 1){
+                status = 'amarelo';
+                statusLabel = 'Em Alerta (Falso Coletivo)';
+            }
+        } else {
+            if(reajusteCobrado > 30){
+                status = 'vermelho';
+                statusLabel = 'Abusivo';
+            } else if(reajusteCobrado > 15){
+                status = 'amarelo';
+                statusLabel = 'Em Alerta';
+            }
+        }
+    }
+
+    const economiaAnual = status !== 'verde'
+        ? Math.max(0, (valorNovo - (valorAnterior * (1 + indiceANS / 100)))) * 12
+        : 0;
+
+    return {
+        id: Date.now(),
+        nome, cpf, operadora, tipoContrato, dataReajuste,
+        valorAnterior: Number(valorAnterior),
+        valorNovo: Number(valorNovo),
+        ano, indiceANS,
+        reajusteCobrado, diferenca,
+        status, statusLabel,
+        isFalsoColetivo: !!isFalsoColetivo,
+        economiaAnual,
+        criadoEm: new Date().toISOString()
+    };
+}
+
+/* ---------- SUBMISSÃO DO FORMULÁRIO DE AUDITORIA ---------- */
+document.getElementById('formAuditoria')?.addEventListener('submit', function(e){
+    e.preventDefault();
+
+    const dados = {
+        nome: document.getElementById('inpNome').value.trim(),
+        cpf: document.getElementById('inpCPF').value.trim(),
+        operadora: document.getElementById('inpOperadora').value.trim(),
+        tipoContrato: document.getElementById('inpTipoContrato').value,
+        dataReajuste: document.getElementById('inpDataReajuste').value,
+        valorAnterior: parseFloat(document.getElementById('inpValorAnterior').value),
+        valorNovo: parseFloat(document.getElementById('inpValorNovo').value),
+        isFalsoColetivo: document.getElementById('inpFalsoColetivo')?.checked || false
+    };
+
+    if(!dados.nome || !dados.operadora || !dados.dataReajuste || !dados.valorAnterior || !dados.valorNovo){
+        alert('Preencha todos os campos obrigatórios.');
+        return;
+    }
+
+    const resultado = executarAuditoria(dados);
+
+    const auditorias = getAuditorias();
+    auditorias.unshift(resultado);
+    salvarAuditorias(auditorias);
+
+    renderResultado(resultado);
+});
+
+/* ======================================================
+   RENDERIZAÇÃO DO RESULTADO DA AUDITORIA
+   ====================================================== */
+function renderResultado(r){
+    const cont = document.getElementById('resultadoAuditoria');
+    if(!cont) return;
+
+    const cores = { verde: '#2ecc71', amarelo: '#ffd54f', vermelho: '#ff5c5c' };
+    const icones = { verde: 'fa-circle-check', amarelo: 'fa-triangle-exclamation', vermelho: 'fa-circle-xmark' };
+
+    cont.innerHTML = `
+        <div class="resultado-box" style="border-left: 5px solid ${cores[r.status]}">
+            <div class="resultado-header">
+                <i class="fa-solid ${icones[r.status]}" style="color:${cores[r.status]};font-size:28px"></i>
+                <div>
+                    <h3>${r.statusLabel}</h3>
+                    <p>${r.nome} · ${r.operadora}</p>
+                </div>
+            </div>
+            <div class="resultado-grid">
+                <div><span>Reajuste Cobrado</span><strong>${fmtPct(r.reajusteCobrado)}</strong></div>
+                <div><span>Índice ANS (${r.ano})</span><strong>${fmtPct(r.indiceANS)}</strong></div>
+                <div><span>Diferença</span><strong>${fmtPct(r.diferenca)}</strong></div>
+                <div><span>Valor Anterior</span><strong>${fmtMoeda(r.valorAnterior)}</strong></div>
+                <div><span>Valor Novo</span><strong>${fmtMoeda(r.valorNovo)}</strong></div>
+                ${r.economiaAnual > 0 ? `<div><span>Economia Potencial/Ano</span><strong style="color:#2ecc71">${fmtMoeda(r.economiaAnual)}</strong></div>` : ''}
+            </div>
+            <button class="btn btn-primary" onclick="gerarPDF(${r.id})">
+                <i class="fa-solid fa-file-pdf"></i> Gerar Relatório PDF
+            </button>
+        </div>
+    `;
+    cont.style.display = 'block';
+}
+
+/* ======================================================
+   GERAÇÃO DE PDF (usando jsPDF, se carregado)
+   ====================================================== */
+function gerarPDF(id){
+    const auditorias = getAuditorias();
+    const r = auditorias.find(a => a.id === id);
+    if(!r){ alert('Auditoria não encontrada.'); return; }
+
+    if(typeof window.jspdf === 'undefined'){
+        alert('Biblioteca de PDF não carregada. Verifique a inclusão do jsPDF no HTML.');
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text('AUDITA360 - Relatório de Auditoria de Reajuste', 14, 20);
+
+    doc.setFontSize(11);
+    let y = 35;
+    const linha = (label, valor) => {
+        doc.setFont(undefined, 'bold');
+        doc.text(label + ':', 14, y);
+        doc.setFont(undefined, 'normal');
+        doc.text(String(valor), 70, y);
+        y += 8;
+    };
+
+    linha('Beneficiário', r.nome);
+    linha('CPF', r.cpf || 'Não informado');
+    linha('Operadora', r.operadora);
+    linha('Tipo de Contrato', labelTipoContrato(r.tipoContrato));
+    linha('Data do Reajuste', new Date(r.dataReajuste + 'T00:00:00').toLocaleDateString('pt-BR'));
+    linha('Valor Anterior', fmtMoeda(r.valorAnterior));
+    linha('Valor Novo', fmtMoeda(r.valorNovo));
+    linha('Reajuste Cobrado', fmtPct(r.reajusteCobrado));
+    linha('Índice ANS', fmtPct(r.indiceANS));
+    linha('Diferença', fmtPct(r.diferenca));
+    linha('Classificação', r.statusLabel);
+    if(r.economiaAnual > 0) linha('Economia Potencial/Ano', fmtMoeda(r.economiaAnual));
+
+    y += 10;
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text('Documento gerado automaticamente pelo sistema Audita360.', 14, y);
+    doc.text('Este relatório é referencial e não substitui análise jurídica formal.', 14, y + 5);
+
+    doc.save(`audita360_relatorio_${r.nome.replace(/\s+/g,'_')}.pdf`);
+}
+
+/* ======================================================
+   CRUD DE BENEFICIÁRIOS
+   ====================================================== */
+document.getElementById('formBeneficiario')?.addEventListener('submit', function(e){
+    e.preventDefault();
+
+    const beneficiario = {
+        id: Date.now(),
+        nome: document.getElementById('benNome').value.trim(),
+        cpf: document.getElementById('benCPF').value.trim(),
+        operadora: document.getElementById('benOperadora').value.trim(),
+        tipoContrato: document.getElementById('benTipoContrato').value,
+        criadoEm: new Date().toISOString()
+    };
+
+    if(!beneficiario.nome){
+        alert('Informe o nome do beneficiário.');
+        return;
+    }
+
+    const lista = getBeneficiarios();
+    lista.unshift(beneficiario);
+    salvarBeneficiarios(lista);
+
+    this.reset();
+    renderBeneficiarios();
+});
+
+function renderBeneficiarios(){
+    const lista = getBeneficiarios();
+    const cont = document.getElementById('listaBeneficiarios');
+    if(!cont) return;
+
+    if(!lista.length){
+        cont.innerHTML = `<div class="empty">
+            <i class="fa-solid fa-users"></i>
+            <h3>Nenhum beneficiário cadastrado</h3>
+            <p>Cadastre beneficiários para agilizar futuras auditorias.</p>
+        </div>`;
+        return;
+    }
+
+    cont.innerHTML = lista.map(b => `
+        <div class="hist-item">
+            <div>
+                <strong>${b.nome}</strong> · ${b.operadora || 'Sem operadora'}
+                <div style="font-size:12px;color:var(--txt-mut);margin-top:4px">
+                    ${b.cpf || 'CPF não informado'} · ${labelTipoContrato(b.tipoContrato)}
+                </div>
+            </div>
+            <button class="btn-icon" onclick="excluirBeneficiario(${b.id})" title="Excluir">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </div>
+    `).join('');
+}
+
+function excluirBeneficiario(id){
+    if(!confirm('Excluir este beneficiário?')) return;
+    const lista = getBeneficiarios().filter(b => b.id !== id);
+    salvarBeneficiarios(lista);
+    renderBeneficiarios();
+}
+
+/* ======================================================
+   HISTÓRICO DE AUDITORIAS
+   ====================================================== */
+function renderHistorico(){
+    const auditorias = getAuditorias();
+    const cont = document.getElementById('listaHistorico');
+    if(!cont) return;
+
+    if(!auditorias.length){
+        cont.innerHTML = `<div class="empty">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <h3>Nenhuma auditoria no histórico</h3>
+            <p>As auditorias realizadas aparecerão aqui.</p>
+        </div>`;
+        return;
+    }
+
+    const badge = { verde: 'badge-g', amarelo: 'badge-y', vermelho: 'badge-r' };
+
+    cont.innerHTML = auditorias.map(r => `
+        <div class="hist-item">
+            <div>
+                <strong>${r.nome}</strong> · ${r.operadora}
+                <div style="font-size:12px;color:var(--txt-mut);margin-top:4px">
+                    ${new Date(r.dataReajuste + 'T00:00:00').toLocaleDateString('pt-BR')} ·
+                    Reajuste: ${fmtPct(r.reajusteCobrado)} · ANS: ${fmtPct(r.indiceANS)}
+                    ${r.isFalsoColetivo ? '· <span style="color:#b388ff"><i class="fa-solid fa-user-secret"></i> Falso Coletivo</span>' : ''}
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+                <span class="badge ${badge[r.status]}">${r.statusLabel}</span>
+                <button class="btn-icon" onclick="gerarPDF(${r.id})" title="Gerar PDF">
+                    <i class="fa-solid fa-file-pdf"></i>
+                </button>
+                <button class="btn-icon" onclick="excluirAuditoria(${r.id})" title="Excluir">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function excluirAuditoria(id){
+    if(!confirm('Excluir esta auditoria do histórico?')) return;
+    const lista = getAuditorias().filter(a => a.id !== id);
+    salvarAuditorias(lista);
+    renderHistorico();
+}
+
+/* ======================================================
+   TABELA DE ÍNDICES ANS
+   ====================================================== */
+function renderTabelaANS(){
+    const cont = document.getElementById('tabelaANS');
+    if(!cont) return;
+
+    const anos = Object.keys(INDICES_ANS).sort((a,b) => b - a);
+
+    cont.innerHTML = `
+        <table class="tabela-ans">
+            <thead>
+                <tr><th>Ano</th><th>Índice de Reajuste Autorizado (%)</th></tr>
+            </thead>
+            <tbody>
+                ${anos.map(ano => `
+                    <tr>
+                        <td>${ano}</td>
+                        <td>${fmtPct(INDICES_ANS[ano])}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+/* ======================================================
+   PÁGINA DASHBOARD
+   ====================================================== */
+let chartComparativoInst = null;
+let chartClassificacaoInst = null;
+
+function renderDashboard(){
+    const auditorias = getAuditorias();
+
+    // ---------- CARDS DE RESUMO ----------
+    document.getElementById('dashTotal').textContent = auditorias.length;
+
+    const abusivos = auditorias.filter(a => a.status === 'vermelho').length;
+    document.getElementById('dashAbusivos').textContent = abusivos;
+
+    const economiaTotal = auditorias.reduce((s,a) => s + (a.status !== 'verde' ? a.economiaAnual : 0), 0);
+    document.getElementById('dashEconomia').textContent = fmtMoeda(economiaTotal);
+
+    const mediaReajuste = auditorias.length
+        ? auditorias.reduce((s,a) => s + a.reajusteCobrado, 0) / auditorias.length
+        : 0;
+    document.getElementById('dashMediaReajuste').textContent = fmtPct(mediaReajuste);
+
+    // ---------- GRÁFICO: Comparativo Reajuste Cobrado vs ANS (últimas 8 auditorias) ----------
+    const ultimasN = auditorias.slice(0, 8).reverse();
+    if(chartComparativoInst) chartComparativoInst.destroy();
+    chartComparativoInst = new Chart(document.getElementById('chartComparativo'), {
+        type: 'bar',
+        data: {
+            labels: ultimasN.map(a => a.nome.split(' ')[0] + ' (' + a.ano + ')'),
+            datasets: [
+                {
+                    label: 'Reajuste Cobrado (%)',
+                    data: ultimasN.map(a => a.reajusteCobrado),
+                    backgroundColor: '#FF7A1A',
+                    borderRadius: 6
+                },
+                {
+                    label: 'Índice ANS (%)',
+                    data: ultimasN.map(a => a.indiceANS),
+                    backgroundColor: '#4fc3f7',
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { labels: { color: '#fff' } },
+                tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtPct(ctx.raw) } }
+            },
+            scales: {
+                x: { ticks: { color: '#fff' }, grid: { display: false } },
+                y: { ticks: { color: '#fff', callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,.06)' } }
+            }
+        }
+    });
+
+    // ---------- GRÁFICO: Classificação das Auditorias (doughnut) ----------
+    const qtdVerde = auditorias.filter(a => a.status === 'verde').length;
+    const qtdAmarelo = auditorias.filter(a => a.status === 'amarelo').length;
+    const qtdVermelho = auditorias.filter(a => a.status === 'vermelho').length;
+
+    if(chartClassificacaoInst) chartClassificacaoInst.destroy();
+    chartClassificacaoInst = new Chart(document.getElementById('chartClassificacao'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Regular', 'Em Alerta', 'Abusivo'],
+            datasets: [{
+                data: [qtdVerde, qtdAmarelo, qtdVermelho],
+                backgroundColor: ['#2ecc71', '#ffd54f', '#ff5c5c'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { color: '#fff', padding: 15 } } },
+            cutout: '65%'
+        }
+    });
+
+    // ---------- LISTA: Últimas Auditorias ----------
+    const contUltimas = document.getElementById('dashUltimasAuditorias');
+    if(!auditorias.length){
+        contUltimas.innerHTML = `<div class="empty">
+            <i class="fa-solid fa-magnifying-glass-chart"></i>
+            <h3>Nenhuma auditoria realizada ainda</h3>
+            <p>Clique em "Nova Auditoria" para começar a analisar reajustes.</p>
+        </div>`;
+    } else {
+        const badge = { verde: 'badge-g', amarelo: 'badge-y', vermelho: 'badge-r' };
+        contUltimas.innerHTML = auditorias.slice(0, 5).map(r => `
+            <div class="hist-item" onclick="irPara('historico')">
+                <div>
+                    <strong>${r.nome}</strong> · ${r.operadora}
+                    <div style="font-size:12px;color:var(--txt-mut);margin-top:4px">
+                        ${new Date(r.dataReajuste + 'T00:00:00').toLocaleDateString('pt-BR')} ·
+                        Reajuste: ${fmtPct(r.reajusteCobrado)}
+                        ${r.isFalsoColetivo ? '· <span style="color:#b388ff"><i class="fa-solid fa-user-secret"></i> Falso Coletivo</span>' : ''}
+                    </div>
+                </div>
+                <span class="badge ${badge[r.status]}">${r.statusLabel}</span>
+            </div>
+        `).join('');
+    }
+}
+</script>
+<script>
+/* ======================================================
+   PÁGINA RELATÓRIOS (Bloco 3.2/3)
+   ====================================================== */
+let chartOperadorasInst = null;
+
+function renderRelatorios(){
+    const auditorias = getAuditorias();
+
+    document.getElementById('relTotal').textContent = auditorias.length;
+
+    const abusivos = auditorias.filter(a => a.status === 'vermelho');
+    document.getElementById('relAbusivos').textContent = abusivos.length;
+
+    const economiaTotal = auditorias.reduce((s,a) => s + (a.status !== 'verde' ? a.economiaAnual : 0), 0);
+    document.getElementById('relEconomia').textContent = fmtMoeda(economiaTotal);
+
+    // ---------- Agrupamento por Operadora ----------
+    const porOperadora = {};
+    auditorias.forEach(a => {
+        const op = a.operadora || 'Não informado';
+        if(!porOperadora[op]) porOperadora[op] = 0;
+        porOperadora[op]++;
+    });
+
+    const labelsOp = Object.keys(porOperadora);
+    const valoresOp = Object.values(porOperadora);
+
+    if(chartOperadorasInst) chartOperadorasInst.destroy();
+
+    if(!labelsOp.length){
+        const ctx = document.getElementById('chartOperadoras');
+        chartOperadorasInst = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: ['Sem dados'], datasets: [{ data: [0], backgroundColor: '#4fc3f7' }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: '#fff' }, grid: { display: false } },
+                    y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,.06)' } }
+                }
+            }
+        });
+    } else {
+        chartOperadorasInst = new Chart(document.getElementById('chartOperadoras'), {
+            type: 'bar',
+            data: {
+                labels: labelsOp,
+                datasets: [{
+                    label: 'Auditorias',
+                    data: valoresOp,
+                    backgroundColor: '#FF7A1A',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: '#fff', stepSize: 1 }, grid: { color: 'rgba(255,255,255,.06)' } },
+                    y: { ticks: { color: '#fff' }, grid: { display: false } }
+                }
+            }
+        });
+    }
+}
+
+/* ======================================================
+   EXPORTAÇÃO - CSV
+   ====================================================== */
+function exportarCSV(){
+    const auditorias = getAuditorias();
+    if(!auditorias.length){
+        alert('Não há auditorias para exportar.');
+        return;
+    }
+
+    const cabecalho = [
+        'Nome', 'CPF', 'Operadora', 'Tipo de Contrato', 'Data do Reajuste',
+        'Valor Anterior', 'Valor Novo', 'Reajuste Cobrado (%)', 'Índice ANS (%)',
+        'Diferença (%)', 'Status', 'Falso Coletivo', 'Economia Potencial Anual (R$)'
+    ];
+
+    const linhas = auditorias.map(a => [
+        a.nome,
+        a.cpf || '',
+        a.operadora,
+        labelTipoContrato(a.tipoContrato),
+        new Date(a.dataReajuste + 'T00:00:00').toLocaleDateString('pt-BR'),
+        a.valorAnterior.toFixed(2),
+        a.valorNovo.toFixed(2),
+        a.reajusteCobrado.toFixed(2),
+        a.indiceANS.toFixed(2),
+        a.diferenca.toFixed(2),
+        a.statusLabel,
+        a.isFalsoColetivo ? 'SIM' : 'Não',
+        a.economiaAnual.toFixed(2)
+    ]);
+
+    let csv = cabecalho.join(';') + '\n';
+    linhas.forEach(l => {
+        csv += l.map(v => `"${String(v).replace(/"/g,'""')}"`).join(';') + '\n';
+    });
+
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `audita360_auditorias_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+/* ======================================================
+   EXPORTAÇÃO - JSON (backup completo)
+   ====================================================== */
+function exportarJSON(){
+    const dados = {
+        auditorias: getAuditorias(),
+        beneficiarios: getBeneficiarios(),
+        exportadoEm: new Date().toISOString(),
+        versao: '2.0'
+    };
+
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `audita360_backup_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+</script>
+<script>
+/* ======================================================
+   RESETAR SISTEMA (Bloco 3.3/3)
+   ====================================================== */
+function resetarSistema(){
+    const confirmacao = confirm(
+        '⚠️ ATENÇÃO!\n\nIsso irá apagar PERMANENTEMENTE:\n' +
+        '- Todas as auditorias salvas\n' +
+        '- Todos os beneficiários cadastrados\n\n' +
+        'Esta ação não pode ser desfeita. Deseja continuar?'
+    );
+
+    if(!confirmacao) return;
+
+    const confirmacaoDupla = confirm('Tem certeza absoluta? Todos os dados serão perdidos.');
+    if(!confirmacaoDupla) return;
+
+    localStorage.removeItem(LS_AUD);
+    localStorage.removeItem(LS_BEN);
+
+    alert('Todos os dados foram apagados. O sistema será recarregado.');
+    location.reload();
+}
+
+/* ======================================================
+   FECHAR MODAIS AO CLICAR FORA
+   ====================================================== */
+document.addEventListener('click', function(e){
+    if(e.target.classList.contains('modal-ov')){
+        e.target.classList.remove('show');
+    }
+});
+
+/* ======================================================
+   FECHAR MODAIS COM ESC
+   ====================================================== */
+document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){
+        document.querySelectorAll('.modal-ov.show').forEach(m => m.classList.remove('show'));
+    }
+});
+
+/* ======================================================
+   MÁSCARA SIMPLES PARA CPF (apenas visual)
+   ====================================================== */
+function aplicarMascaraCPF(inputId){
+    const input = document.getElementById(inputId);
+    if(!input) return;
+    input.addEventListener('input', function(){
+        let v = this.value.replace(/\D/g, '').slice(0, 11);
+        if(v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+        else if(v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+        else if(v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+        this.value = v;
+    });
+}
+
+/* ======================================================
+   INICIALIZAÇÃO GERAL AO CARREGAR A PÁGINA
+   ====================================================== */
+document.addEventListener('DOMContentLoaded', function(){
+    aplicarMascaraCPF('inpCPF');
+    aplicarMascaraCPF('benCPF');
+
+    // Renderiza o dashboard como página inicial
+    renderDashboard();
+});
+</script>
+</body>
+</html>
